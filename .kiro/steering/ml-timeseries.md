@@ -1,0 +1,37 @@
+---
+inclusion: fileMatch
+fileMatchPattern: ['ml/**/*.py', 'backend/**/ml/**/*.py', 'ml/**/*.yaml']
+---
+
+# ML pipeline
+
+Target is next-hour electricity kWh (`y_{t+1}`). Use BDG2 cleaned electricity for 2–3 selected buildings only.
+
+## Splits and scaling
+
+- Chronological train / val / test only. Never `shuffle=True` or random row splits.
+- Default: train through 2017-06-30, val Jul–Sep 2017, test Oct–Dec 2017.
+- Fit scalers, encoders, and Isolation Forest on train only.
+
+```python
+# BAD
+X_train, X_test = train_test_split(X, y, shuffle=True)
+
+# GOOD
+train = df[df["ts"] <= TRAIN_END]
+val = df[(df["ts"] > TRAIN_END) & (df["ts"] <= VAL_END)]
+test = df[df["ts"] > VAL_END]
+```
+
+## Occupancy
+
+If occupancy is not in BDG2, generate a profile from `primary_use` + hour and set `occupancy_source="simulated"`. Never present it as measured.
+
+## SHAP
+
+- Live: TreeSHAP for Random Forest / XGBoost; linear explainer or coefficients for Linear Regression.
+- LSTM / CNN-LSTM: offline SHAP or permutation importance stored in `explanations`. Do not run KernelSHAP per request.
+
+## Metrics
+
+Persist real MAE, RMSE, R² (MAPE only if `|y|` is above a safe floor) to `model_runs` / `artifacts/metrics.json`. Never hardcode scores. Pin `random_seed` in config.

@@ -1,0 +1,47 @@
+# Secrets
+.env
+!.env.example
+iot/mosquitto/config/passwd
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/test-results/
+
+# Data and trained artifacts (never commit raw BDG2 or model binaries)
+data/raw/*
+!data/raw/README.md
+data/processed/*
+!data/processed/README.md
+artifacts/*
+!artifacts/.gitkeep
+!artifacts/README.md
+*.pkl
+*.joblib
+*.pt
+*.pth
+*.onnx
+*.h5
+
+*.sqlite3
+*.db
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+*.log

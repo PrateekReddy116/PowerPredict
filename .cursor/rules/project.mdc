@@ -1,0 +1,31 @@
+---
+description: Core constraints, stack, and academic standards for PowerPredict
+alwaysApply: true
+---
+
+# PowerPredict
+
+4th-year academic project: smart-building energy forecasting (BDG2, FastAPI, React, MQTT, SHAP). Prioritize correctness, reproducibility, explainability, and a runnable demo.
+
+## Stack (do not substitute)
+
+- Frontend: React, Vite, TypeScript, Tailwind CSS, Recharts
+- Backend: Python, FastAPI, Pydantic; Postgres via `DATABASE_URL`
+- ML: pandas, numpy, scikit-learn, XGBoost, PyTorch, SHAP
+- IoT: MQTT (Mosquitto) + Python simulator
+- Local Docker Compose for Postgres + Mosquitto only
+
+## Do not introduce
+
+Kubernetes, microservices, Redis-as-a-platform, reinforcement learning, digital twins, transformers as the main model, extra cloud SaaS, or WebSockets (IoT UI polls).
+
+## Correctness
+
+- Never fabricate metrics, forecasts, or experimental results.
+- Never shuffle time-series data.
+- Label simulated occupancy and simulated IoT as simulated in data, API, and UI.
+- Training is an offline CLI; the API loads saved artifacts only.
+
+## Security (minimum)
+
+JWT from env secrets, explicit CORS origins (no `*`), rate limits with 429 + quota headers. No hardcoded credentials.

@@ -1,0 +1,110 @@
+random_seed: 42
+target: next_hour_electricity_kwh
+seq_len: 24
+mape_floor_kwh: 1.0
+device: cpu
+split:
+  # Phase 2 default: global unique-timestamp 70/15/15. No shuffle.
+  method: global_fractions
+  train_frac: 0.70
+  val_frac: 0.15
+  # Legacy calendar windows (ml.features.splits.chronological_split). Not used by Phase 2 prepare.
+  train_end: "2017-06-30T23:00:00Z"
+  val_end: "2017-09-30T23:00:00Z"
+buildings:
+  n: 3
+  primary_uses: [Education, Office]
+  min_completeness: 0.90
+features:
+  lags: [1, 2, 3, 6, 12, 24, 168]
+  rolling_means: [3, 6, 24, 168]
+  rolling_includes_current_t: false
+  cyclic_encodings: true
+  occupancy: true
+preprocess:
+  interpolate_limit_hours: 6
+  iqr_k: 3.0
+  winsorize: true
+timezone:
+  source: bdg2_local
+  stored: UTC
+occupancy_source: simulated
+paths:
+  processed_dir: data/processed
+  artifacts_dir: artifacts
+# Metrics are written by training into artifacts/ — never hardcoded here.
+explain:
+  background_max: 64
+  local_max: 8
+  sequence_max_evals: 465
+  permutation_repeats: 2
+models:
+  linear_regression: {}
+  random_forest:
+    n_estimators: 100
+    max_depth: 12
+    min_samples_leaf: 2
+    n_jobs: 1
+  xgboost:
+    n_estimators: 200
+    max_depth: 6
+    learning_rate: 0.05
+    subsample: 0.8
+    colsample_bytree: 0.8
+    early_stopping_rounds: 20
+    n_jobs: 1
+  lstm:
+    hidden_size: 64
+    num_layers: 1
+    dropout: 0.1
+    epochs: 30
+    batch_size: 32
+    patience: 5
+    learning_rate: 0.001
+  cnn_lstm:
+    conv_channels: 32
+    kernel_size: 3
+    hidden_size: 64
+    num_layers: 1
+    dropout: 0.1
+    epochs: 30
+    batch_size: 32
+    patience: 5
+    learning_rate: 0.001
+smoke:
+  seq_len: 8
+  epochs: 1
+  n_estimators: 8
+  hidden_size: 16
+  batch_size: 8
+  patience: 1
+# Isolation Forest (Phase 5). Fit on chronological train only. Thresholds are overridable via env.
+anomaly:
+  contamination: 0.01
+  n_estimators: 100
+  max_samples: auto
+  min_train_rows: 24
+  expected_floor_kwh: 1.0
+  # Rows missing energy_kwh or hour are dropped. Optional IF columns use train-only median impute.
+  missing: drop_required_impute_optional
+  features:
+    - energy_kwh
+    - lag_1
+    - lag_2
+    - lag_3
+    - lag_6
+    - lag_12
+    - lag_24
+    - lag_168
+    - hour
+    - air_temperature
+    - residual
+  flag:
+    isolation_forest_outlier: true
+    warning_deviation_pct: 25.0
+  severity:
+    warning_deviation_pct: 25.0
+    critical_deviation_pct: 50.0
+    # sklearn decision_function: more negative = more anomalous. null = unused.
+    warning_score_cutoff: null
+    critical_score_cutoff: null
